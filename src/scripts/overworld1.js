@@ -39,6 +39,7 @@
                 const cell = document.createElement('div');
                 cell.className = 'grid-cell';
                 if (mapa[row][col] === 1) cell.style.backgroundColor = 'rgba(255, 0, 0, 0.5)';
+                if (mapa[row][col] === 2) cell.style.backgroundColor = 'rgba(140, 255, 176, 0.5)';
                 grid.appendChild(cell);
             }
         }
