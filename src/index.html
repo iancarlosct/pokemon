@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pokémon – Escolha seu Pokémon</title>
+  <link rel="stylesheet" href="styles/index.css" />
+</head>
+<body>
+
+  <!-- STEP 1 — Nome -->
+  <div id="screen-name" class="screen active">
+    <div class="scanlines"></div>
+    <div class="stars" id="stars"></div>
+
+    <div class="logo-wrap">
+      <div class="logo-text">
+        <span class="poke">Poké</span><span class="mon">mon</span>
+      </div>
+      <div class="logo-sub">Nova Jornada</div>
+    </div>
+
+    <div class="dialog-box" id="dialog-name">
+      <p class="dialog-line" id="dialog-text">Olá! Qual é o seu nome, Treinador?</p>
+    </div>
+
+    <div class="name-form">
+      <input
+        type="text"
+        id="trainer-name"
+        class="name-input"
+        maxlength="12"
+        placeholder="Digite seu nome..."
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button class="btn-confirm" id="btn-name">Confirmar ▶</button>
+    </div>
+
+    <div class="corner-deco top-left"></div>
+    <div class="corner-deco top-right"></div>
+    <div class="corner-deco bottom-left"></div>
+    <div class="corner-deco bottom-right"></div>
+  </div>
+
+  <!-- STEP 2 — Escolha Pokémon -->
+  <div id="screen-pokemon" class="screen">
+    <div class="scanlines"></div>
+
+    <div class="dialog-box" id="dialog-pokemon">
+      <p class="dialog-line" id="dialog-pokemon-text"></p>
+    </div>
+
+    <div class="pokemon-grid">
+
+      <div class="pokemon-card" data-name="charmander" data-type="fire" tabindex="0">
+        <div class="card-glow fire-glow"></div>
+        <div class="type-badge fire">🔥 Fogo</div>
+        <div class="pokemon-img-wrap">
+          <img src="assets/images/pokes/charmander.png" alt="Charmander" class="pokemon-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+          <div class="pokemon-placeholder fire-placeholder" style="display:none">
+            <span class="placeholder-icon">🔥</span>
+          </div>
+        </div>
+        <div class="pokemon-name">Charmander</div>
+      </div>
+
+      <div class="pokemon-card" data-name="bulbasaur" data-type="grass" tabindex="0">
+        <div class="card-glow grass-glow"></div>
+        <div class="type-badge grass">🌿 Planta</div>
+        <div class="pokemon-img-wrap">
+          <img src="assets/images/pokes/bulbasaur.png" alt="Bulbasaur" class="pokemon-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+          <div class="pokemon-placeholder grass-placeholder" style="display:none">
+            <span class="placeholder-icon">🌿</span>
+          </div>
+        </div>
+        <div class="pokemon-name">Bulbasaur</div>
+      </div>
+
+      <div class="pokemon-card" data-name="squirtle" data-type="water" tabindex="0">
+        <div class="card-glow water-glow"></div>
+        <div class="type-badge water">💧 Água</div>
+        <div class="pokemon-img-wrap">
+          <img src="assets/images/pokes/squirtle.png" alt="Squirtle" class="pokemon-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+          <div class="pokemon-placeholder water-placeholder" style="display:none">
+            <span class="placeholder-icon">💧</span>
+          </div>
+        </div>
+        <div class="pokemon-name">Squirtle</div>
+      </div>
+
+    </div>
+
+    <div class="corner-deco top-left"></div>
+    <div class="corner-deco top-right"></div>
+    <div class="corner-deco bottom-left"></div>
+    <div class="corner-deco bottom-right"></div>
+  </div>
+
+  <!-- STEP 3 — Confirmação -->
+  <div id="screen-confirm" class="screen">
+    <div class="scanlines"></div>
+    <div class="confirm-content">
+      <div class="pokeball-anim">
+        <div class="pokeball">
+          <div class="pokeball-top"></div>
+          <div class="pokeball-mid"></div>
+          <div class="pokeball-bottom"></div>
+          <div class="pokeball-button"></div>
+        </div>
+      </div>
+      <div class="confirm-text" id="confirm-text"></div>
+      <button class="btn-confirm btn-start" id="btn-start">Iniciar Jornada ▶</button>
+    </div>
+    <div class="corner-deco top-left"></div>
+    <div class="corner-deco top-right"></div>
+    <div class="corner-deco bottom-left"></div>
+    <div class="corner-deco bottom-right"></div>
+  </div>
+
+  <script src="scripts/pokes/Pokemon.js"></script>
+  <script src="scripts/pokes/Charmander.js"></script>
+  <script src="scripts/pokes/Bulbasaur.js"></script>
+  <script src="scripts/pokes/Squirtle.js"></script>
+  <script src="scripts/PokemonFactory.js"></script>
+  <script src="scripts/index.js"></script>
+  <script src="scripts/index.js"></script>
+</body>
+</html>
