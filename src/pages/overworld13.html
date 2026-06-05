@@ -1,17 +1,41 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Overworld 13</title>
-    <link rel="stylesheet" href="../styles/global.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Overworld 13</title>
+  <link rel="stylesheet" href="../styles/global.css">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="map-container">
-        <img class="map-image" src="../assets/images/maps/overworld13.png" alt="Mapa">
-        <div class="grid-overlay" id="gridOverlay"></div>
-    </div>
+  <div class="map-container">
+    <img class="map-image" src="../assets/images/maps/overworld13.png" alt="Mapa">
+    <div class="grid-overlay" id="gridOverlay"></div>
+  </div>
 
-    <script src="../scripts/maps/overworld13.js"></script>
+  <!-- Base -->
+  <script src="../scripts/pokes/Pokemon.js"></script>
+
+  <!-- Pokémon do jogador -->
+  <script src="../scripts/pokes/Charmander.js"></script>
+  <script src="../scripts/pokes/Bulbasaur.js"></script>
+  <script src="../scripts/pokes/Squirtle.js"></script>
+
+  <!-- Pokémon selvagens -->
+  <script src="../scripts/pokes/Caterpie.js"></script>
+  <script src="../scripts/pokes/Rattata.js"></script>
+  <script src="../scripts/pokes/Weedle.js"></script>
+  <script src="../scripts/pokes/Horsea.js"></script>
+  <script src="../scripts/pokes/Magikarp.js"></script>
+  <script src="../scripts/pokes/Tentacool.js"></script>
+
+  <!-- Sistema -->
+  <script src="../scripts/PokemonFactory.js"></script>
+  <script src="../scripts/Battle.js"></script>
+  <script src="../scripts/BattleUI.js"></script>
+  <script src="../scripts/TrainerStorage.js"></script>
+
+  <!-- Mapa -->
+  <script src="../scripts/maps/overworld13.js"></script>
 </body>
 </html>
