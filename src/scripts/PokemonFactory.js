@@ -1,5 +1,26 @@
-const CONSTRUTORES = { charmander: Charmander, bulbasaur: Bulbasaur, squirtle: Squirtle };
-const BASE_STATS   = { charmander: CHARMANDER_BASE, bulbasaur: BULBASAUR_BASE, squirtle: SQUIRTLE_BASE };
+const CONSTRUTORES = {
+  charmander: Charmander,
+  bulbasaur:  Bulbasaur,
+  squirtle:   Squirtle,
+  caterpie:   Caterpie,
+  weedle:     Weedle,
+  rattata:    Rattata,
+  tentacool:  Tentacool,
+  magikarp:   Magikarp,
+  horsea:     Horsea,
+};
+
+const BASE_STATS = {
+  charmander: CHARMANDER_BASE,
+  bulbasaur:  BULBASAUR_BASE,
+  squirtle:   SQUIRTLE_BASE,
+  caterpie:   CATERPIE_BASE,
+  weedle:     WEEDLE_BASE,
+  rattata:    RATTATA_BASE,
+  tentacool:  TENTACOOL_BASE,
+  magikarp:   MAGIKARP_BASE,
+  horsea:     HORSEA_BASE,
+};
 
 class PokemonFactory {
   // multiplicadores: { vida, ataque, defesa, velocidade } — valores opcionais, padrão 1.0
@@ -26,5 +47,10 @@ class PokemonFactory {
         parseFloat((Math.random() * (max - min) + min).toFixed(2)),
       ])
     );
+  }
+
+  // Lista todas as espécies disponíveis
+  static especiesDisponiveis() {
+    return Object.keys(CONSTRUTORES);
   }
 }
