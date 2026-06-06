@@ -5,6 +5,7 @@ class BattleUI {
     this._bloqueado = false;
     this._injectStyles();
     this._build();
+    if (typeof window.musicIniciarBatalha === 'function') window.musicIniciarBatalha();
     this._atualizar();
     requestAnimationFrame(() => {
       this.overlay.classList.add('visible');
@@ -258,6 +259,7 @@ class BattleUI {
   }
 
   _encerrar(resultado) {
+    if (typeof window.musicEncerrarBatalha === 'function') window.musicEncerrarBatalha();
     this.overlay.classList.remove('visible');
     setTimeout(() => { this.overlay.remove(); this.onEncerrar(resultado); }, 400);
   }

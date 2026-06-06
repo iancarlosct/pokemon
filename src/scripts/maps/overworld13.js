@@ -1,13 +1,3 @@
-/**
- * @file overworld13.js
- * @description Mapa Overworld 13.
- *
- * Correções aplicadas:
- *   - onEncerrar agora persiste o estado da equipe após qualquer batalha
- *   - Captura: pokemon selvagem é adicionado à equipe no localStorage
- *   - XP: equipe é re-salva após vitória (com nível e XP atualizados)
- */
-
 // 0 = livre | 1 = parede | 2 = grama | 3 = água
 const mapa = [
     [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,0,0,0,0,2,2,2,2,2], //0
