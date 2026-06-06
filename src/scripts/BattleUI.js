@@ -1,8 +1,18 @@
+/**
+ * @file BattleUI.js
+ * @description Interface da batalha refatorada para o padrão State.
+ *
+ * A principal mudança em relação à versão original:
+ *  - O flag _bloqueado foi removido completamente.
+ *  - Toda verificação de "pode agir agora?" é delegada a battle.jogadorPodeAgir().
+ *  - Os métodos de ação (atacar, capturar, correr) chamam diretamente battle.atacar(),
+ *    battle.capturar(), battle.correr() — sem lógica de estado aqui.
+ *  - battle.trocar() substitui battle.tentarCapturar() e battle.tentarCorrer() antigos.
+ */
 class BattleUI {
   constructor(battle, onEncerrar) {
     this.battle     = battle;
     this.onEncerrar = onEncerrar;
-    this._bloqueado = false;
     this._injectStyles();
     this._build();
     if (typeof window.musicIniciarBatalha === 'function') window.musicIniciarBatalha();
@@ -91,69 +101,72 @@ class BattleUI {
   // ─── Eventos ──────────────────────────────────────────────────
 
   _bindEventos() {
-    this.overlay.querySelector('#bt-atk').onclick = () => this._acao(() => this.battle.atacar());
-    this.overlay.querySelector('#bt-cap').onclick = () => this._capturar();
-    this.overlay.querySelector('#bt-run').onclick = () => this._correr();
+    this.overlay.querySelector('#bt-atk').onclick  = () => this._acao(() => this.battle.atacar());
+    this.overlay.querySelector('#bt-cap').onclick  = () => this._capturar();
+    this.overlay.querySelector('#bt-run').onclick  = () => this._correr();
     this.overlay.querySelector('#bt-swap').onclick = () => this._abrirTrocar();
   }
 
+  // ─── Ações ────────────────────────────────────────────────────
+  // Não há mais verificação de _bloqueado aqui.
+  // battle.jogadorPodeAgir() encapsula essa decisão no estado atual.
+
   _acao(fn) {
-    if (this._bloqueado) return;
-    this._bloqueado = true;
+    if (!this.battle.jogadorPodeAgir()) return;
+
     this._animAtaque('player', () => {
       const res = fn();
+      if (!res) return;
+
       this._animAtaque('enemy', () => {
         this._atualizar();
         this._log(res.log.join(' '));
-        if (res.multiplicador > 1)  this._flashEfetividade('super');
-        if (res.multiplicador < 1)  this._flashEfetividade('fraco');
-        if (res.encerrada) {
-          setTimeout(() => this._encerrar(res.resultado), 2000);
-        } else {
-          setTimeout(() => { this._bloqueado = false; }, 600);
+        if (res.multiplicador > 1) this._flashEfetividade('super');
+        if (res.multiplicador < 1) this._flashEfetividade('fraco');
+        if (this.battle.encerrada) {
+          setTimeout(() => this._encerrar(this.battle.resultado), 2000);
         }
       });
     });
   }
 
   _capturar() {
-    if (this._bloqueado) return;
-    this._bloqueado = true;
+    if (!this.battle.jogadorPodeAgir()) return;
+
     this._animPokeball(() => {
-      if (this.battle.tentarCapturar()) {
-        this._log(`${this.battle.selvagem.nome} foi capturado!`);
-        setTimeout(() => this._encerrar('captura'), 1800);
-      } else {
-        this._log(`${this.battle.selvagem.nome} escapou da Pokébola!`);
-        const res = this.battle._turnoInimigo({ danoJogador: 0, log: [], multiplicador: 1 });
-        this._atualizar();
-        if (res.encerrada) setTimeout(() => this._encerrar(res.resultado), 1800);
-        else setTimeout(() => { this._bloqueado = false; }, 600);
+      const res = this.battle.capturar();
+      if (!res) return;
+
+      this._atualizar();
+      this._log(res.log.join(' '));
+
+      if (this.battle.encerrada) {
+        setTimeout(() => this._encerrar(this.battle.resultado), 1800);
       }
     });
   }
 
   _correr() {
-    if (this._bloqueado) return;
-    this._bloqueado = true;
-    if (this.battle.tentarCorrer()) {
-      this._log('Você escapou!');
-      setTimeout(() => this._encerrar('fuga'), 1200);
-    } else {
-      this._log('Não conseguiu escapar!');
-      const res = this.battle._turnoInimigo({ danoJogador: 0, log: [], multiplicador: 1 });
-      this._atualizar();
-      if (res.encerrada) setTimeout(() => this._encerrar(res.resultado), 1800);
-      else setTimeout(() => { this._bloqueado = false; }, 600);
+    if (!this.battle.jogadorPodeAgir()) return;
+
+    const res = this.battle.correr();
+    if (!res) return;
+
+    this._atualizar();
+    this._log(res.log.join(' '));
+
+    if (this.battle.encerrada) {
+      setTimeout(() => this._encerrar(this.battle.resultado), 1200);
     }
   }
 
   _abrirTrocar() {
-    if (this._bloqueado) return;
+    if (!this.battle.jogadorPodeAgir()) return;
+
     const actions  = this.overlay.querySelector('#bt-actions');
     const swapList = this.overlay.querySelector('#bt-swap-list');
     swapList.innerHTML = '';
-    actions.style.display = 'none';
+    actions.style.display  = 'none';
     swapList.style.display = 'flex';
 
     this.battle.equipe.forEach((p, i) => {
@@ -164,23 +177,25 @@ class BattleUI {
                        <span>${p.nome}</span>
                        <span class="swap-hp">${p.vida}/${p.vidaMax}</span>`;
       btn.onclick = () => {
-        if (this.battle.trocar(i)) {
+        // battle.trocar() delega ao estado — retorna null se inválido
+        const res = this.battle.trocar(i);
+        if (res) {
           this._atualizarSprite();
           this._atualizar();
           this._log(`Vai, ${p.nome}!`);
         }
         swapList.style.display = 'none';
-        actions.style.display = 'grid';
+        actions.style.display  = 'grid';
       };
       swapList.appendChild(btn);
     });
 
     const voltar = document.createElement('button');
-    voltar.className = 'bt-btn';
+    voltar.className   = 'bt-btn';
     voltar.textContent = '← Voltar';
     voltar.onclick = () => {
       swapList.style.display = 'none';
-      actions.style.display = 'grid';
+      actions.style.display  = 'grid';
     };
     swapList.appendChild(voltar);
   }
@@ -194,7 +209,6 @@ class BattleUI {
     sprite.style.transform  = `translateX(${dir})`;
     setTimeout(() => {
       sprite.style.transform = 'translateX(0)';
-      // Flash de dano no alvo
       const alvo = this.overlay.querySelector(lado === 'player' ? '#bt-enemy-sprite' : '#bt-player-sprite');
       alvo.classList.add('hit-flash');
       setTimeout(() => { alvo.classList.remove('hit-flash'); cb(); }, 250);
@@ -211,7 +225,7 @@ class BattleUI {
 
   _flashEfetividade(tipo) {
     const el = document.createElement('div');
-    el.className = `bt-efectividade ${tipo}`;
+    el.className  = `bt-efectividade ${tipo}`;
     el.textContent = tipo === 'super' ? 'Super efetivo!' : 'Não é muito efetivo...';
     this.overlay.querySelector('#bt-arena').appendChild(el);
     setTimeout(() => el.remove(), 1200);
@@ -240,10 +254,10 @@ class BattleUI {
   }
 
   _atualizarSprite() {
-    const a = this.battle.ativo;
+    const a      = this.battle.ativo;
     const sprite = this.overlay.querySelector('#bt-player-sprite');
-    sprite.src = `../assets/images/pokes/${a.nome.toLowerCase()}.png`;
-    sprite.alt = a.nome;
+    sprite.src   = `../assets/images/pokes/${a.nome.toLowerCase()}.png`;
+    sprite.alt   = a.nome;
   }
 
   _corHP(pct) {
@@ -253,7 +267,7 @@ class BattleUI {
   }
 
   _log(texto) {
-    const el = this.overlay.querySelector('#bt-log');
+    const el       = this.overlay.querySelector('#bt-log');
     el.style.opacity = '0';
     setTimeout(() => { el.textContent = texto; el.style.opacity = '1'; }, 120);
   }
@@ -282,7 +296,6 @@ class BattleUI {
       }
       #bt-overlay.visible { opacity: 1; }
 
-      /* ── Arena ── */
       #bt-arena {
         flex: 1; position: relative;
         background:
@@ -293,7 +306,6 @@ class BattleUI {
         padding: 0 4% 0;
       }
 
-      /* Scanlines sutis */
       #bt-arena::before {
         content: '';
         position: absolute; inset: 0; z-index: 1;
@@ -304,7 +316,6 @@ class BattleUI {
         pointer-events: none;
       }
 
-      /* ── Lados ── */
       #bt-enemy-side {
         position: absolute; top: 10%; left: 4%;
         display: flex; flex-direction: column; gap: 10px;
@@ -316,7 +327,6 @@ class BattleUI {
         z-index: 2;
       }
 
-      /* ── Info cards ── */
       #bt-enemy-info, #bt-player-info {
         background: rgba(10,10,30,0.85);
         border: 2px solid #2a2a6e;
@@ -332,8 +342,8 @@ class BattleUI {
         display: flex; justify-content: space-between; align-items: baseline;
         margin-bottom: 8px;
       }
-      .bt-name { font-size: 0.55rem; color: #e8e8ff; letter-spacing: 1px; }
-      .bt-level { font-size: 0.4rem; color: #6a6aaa; }
+      .bt-name  { font-size: 0.55rem; color: #e8e8ff; letter-spacing: 1px; }
+      .bt-level { font-size: 0.4rem;  color: #6a6aaa; }
 
       .bt-hp-track { display: flex; align-items: center; gap: 8px; }
       .bt-hp-label { font-size: 0.38rem; color: #f5c542; }
@@ -352,7 +362,6 @@ class BattleUI {
         text-align: right; margin-top: 5px;
       }
 
-      /* ── Sprites ── */
       #bt-enemy-sprite-wrap, #bt-player-sprite-wrap {
         position: relative; display: flex;
         flex-direction: column; align-items: center;
@@ -380,7 +389,6 @@ class BattleUI {
         40%     { filter: drop-shadow(0 0 20px #fff) brightness(3); opacity: 0.5; }
       }
 
-      /* ── Pokébola animação ── */
       #bt-pokeball-anim {
         position: absolute; top: 50%; left: 55%;
         transform: translate(-50%, -50%);
@@ -401,7 +409,6 @@ class BattleUI {
         100% { transform:translate(-50%,-50%) scale(1) rotate(-360deg); opacity:0.2; }
       }
 
-      /* ── Efetividade flash ── */
       .bt-efectividade {
         position: absolute; top: 38%; left: 50%;
         transform: translateX(-50%);
@@ -419,7 +426,6 @@ class BattleUI {
         100% { opacity:0; transform:translateX(-50%) translateY(-12px); }
       }
 
-      /* ── Painel inferior ── */
       #bt-panel {
         height: 180px; background: #0d0d2b;
         border-top: 3px solid #2a2a6e;
@@ -448,7 +454,6 @@ class BattleUI {
         gap: 6px; padding: 12px; overflow-y: auto;
       }
 
-      /* ── Botões ── */
       .bt-btn {
         font-family: 'Press Start 2P', monospace;
         font-size: 0.4rem;

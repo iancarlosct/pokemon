@@ -1,20 +1,19 @@
 /**
  * @file Battle.js
- * @description Sistema de batalha com suporte a held items via Decorator Pattern.
+ * @description Contexto do padrão State. A Battle não toma mais decisões
+ * de fluxo diretamente — ela delega para o estado atual (this.estado).
  *
- * Alterações em relação à versão original:
- *  - atacar(): chama aoIniciarTurno() do Pokémon ativo (Leftovers, etc.)
- *  - _turnoInimigo(): aplica contra-dano do Rocky Helmet ao inimigo
- *  - trocar(): reseta o lock da Choice Band ao trocar de Pokémon
- *
- * Nenhuma outra lógica foi alterada.
+ * A Battle mantém:
+ *  - Os dados da batalha (equipe, selvagem, ativo)
+ *  - A tabela de efetividade e os helpers de dano
+ *  - O estado atual, acessível via this.estado
+ *  - O método _transicionarPara() usado pelos estados
  */
 class Battle {
   constructor(pokemonEquipe, pokemonSelvagem) {
-    this.equipe    = pokemonEquipe;
-    this.selvagem  = pokemonSelvagem;
-    this.ativo     = this.equipe[0];
-    this.encerrada = false;
+    this.equipe   = pokemonEquipe;
+    this.selvagem = pokemonSelvagem;
+    this.ativo    = this.equipe[0];
 
     this._efetividade = {
       'Fogo':          { 'Grama': 1.5, 'Inseto': 1.5, 'Água': 0.6, 'Fogo': 0.6 },
@@ -25,7 +24,38 @@ class Battle {
       'Inseto/Veneno': { 'Grama': 1.5 },
       'Água/Veneno':   { 'Fogo': 1.3, 'Grama': 0.7 },
     };
+
+    // ── Estado inicial: turno do jogador ─────────────────────────
+    this.estado = new PlayerTurnState(this);
   }
+
+  // ─── API pública — delegada ao estado atual ───────────────────────────────
+
+  atacar()       { return this.estado.atacar(); }
+  trocar(indice) { return this.estado.trocar(indice); }
+  capturar()     { return this.estado.capturar(); }
+  correr()       { return this.estado.correr(); }
+
+  /** Indica se o jogador pode interagir agora (usado pela BattleUI). */
+  jogadorPodeAgir() { return this.estado.jogadorPodeAgir(); }
+
+  /** Indica se a batalha terminou (usado pela BattleUI). */
+  get encerrada() { return this.estado.encerrada(); }
+
+  /** Resultado final ('vitoria' | 'derrota' | 'fuga' | 'captura') ou null. */
+  get resultado() { return this.estado.resultado ?? null; }
+
+  // ─── Transição de estado ──────────────────────────────────────────────────
+
+  /**
+   * Muda o estado atual. Chamado exclusivamente pelos estados concretos.
+   * @param {BattleState} novoEstado
+   */
+  _transicionarPara(novoEstado) {
+    this.estado = novoEstado;
+  }
+
+  // ─── Helpers de dano (usados pelos estados) ───────────────────────────────
 
   _calcularDano(atacante, defensor, danoBase) {
     const tipos = atacante.tipo.split('/');
@@ -50,68 +80,6 @@ class Battle {
     return dano;
   }
 
-  atacar() {
-    const log = [];
-
-    // ── Efeito de turno do held item do Pokémon ativo (ex: Leftovers) ──────
-    if (typeof this.ativo.aoIniciarTurno === 'function') {
-      const efeito = this.ativo.aoIniciarTurno();
-      if (efeito?.log?.length) log.push(...efeito.log);
-    }
-
-    const resAtaque = this.ativo.atacar();
-    const danoBase  = typeof resAtaque === 'number' ? resAtaque : (resAtaque.dano ?? 1);
-    const { dano, multiplicador } = this._calcularDano(this.ativo, this.selvagem, danoBase);
-
-    const danoEfetivo = this._aplicarDano(this.selvagem, dano);
-
-    if (multiplicador > 1)        log.push('É super efetivo!');
-    if (multiplicador < 1)        log.push('Não é muito efetivo...');
-    if (resAtaque.golpesDuplos)   log.push('Golpe duplo!');
-    log.push(`${this.ativo.nome} causou ${danoEfetivo} de dano.`);
-
-    // ── Rocky Helmet: inimigo devolve dano ao jogador ──────────────────────
-    if (typeof this.selvagem.consumirContraDano === 'function') {
-      const contraDano = this.selvagem.consumirContraDano();
-      if (contraDano > 0) {
-        this._aplicarDano(this.ativo, contraDano);
-        log.push(`${this.ativo.nome} levou ${contraDano} de dano do Rocky Helmet!`);
-        if (!this.ativo.vivo) {
-          const proximo = this.equipe.find(p => p.vivo && p !== this.ativo);
-          if (proximo) {
-            this.ativo = proximo;
-            log.push(`${this.ativo.nome} entrou em batalha!`);
-          } else {
-            this.encerrada = true;
-            return { danoJogador: danoEfetivo, danoInimigo: 0, log, encerrada: true, resultado: 'derrota', multiplicador };
-          }
-        }
-      }
-    }
-
-    if (!this.selvagem.vivo) {
-      this.encerrada = true;
-      const xp = Math.floor(this.selvagem.vidaMax * 1.5);
-      this.ativo.ganharExperiencia(xp);
-      return { danoJogador: danoEfetivo, danoInimigo: 0, log, encerrada: true, resultado: 'vitoria', multiplicador };
-    }
-
-    return this._turnoInimigo({ danoJogador: danoEfetivo, log, multiplicador });
-  }
-
-  trocar(indice) {
-    const novo = this.equipe[indice];
-    if (!novo || !novo.vivo) return false;
-
-    // ── Choice Band: reseta o lock ao trocar de Pokémon ───────────────────
-    if (typeof this.ativo.resetarMove === 'function') {
-      this.ativo.resetarMove();
-    }
-
-    this.ativo = novo;
-    return true;
-  }
-
   tentarCapturar() {
     const chance = 1 - (this.selvagem.vida / this.selvagem.vidaMax) * 0.7;
     return Math.random() < chance;
@@ -122,41 +90,5 @@ class Battle {
     return Math.random() < (0.5 + bonus);
   }
 
-  _turnoInimigo(estado) {
-    const log = [...estado.log];
-    const resInimigo = this.selvagem.atacar();
-    const danoBase   = typeof resInimigo === 'number' ? resInimigo : (resInimigo.dano ?? 1);
-    const { dano, multiplicador } = this._calcularDano(this.selvagem, this.ativo, danoBase);
-
-    const danoEfetivo = this._aplicarDano(this.ativo, dano);
-    log.push(`${this.selvagem.nome} causou ${danoEfetivo} de dano.`);
-
-    // ── Rocky Helmet: jogador devolve dano ao inimigo ──────────────────────
-    if (typeof this.ativo.consumirContraDano === 'function') {
-      const contraDano = this.ativo.consumirContraDano();
-      if (contraDano > 0) {
-        this._aplicarDano(this.selvagem, contraDano);
-        log.push(`${this.selvagem.nome} levou ${contraDano} de dano do Rocky Helmet!`);
-        if (!this.selvagem.vivo) {
-          this.encerrada = true;
-          const xp = Math.floor(this.selvagem.vidaMax * 1.5);
-          this.ativo.ganharExperiencia(xp);
-          return { ...estado, danoInimigo: danoEfetivo, log, encerrada: true, resultado: 'vitoria' };
-        }
-      }
-    }
-
-    if (!this.ativo.vivo) {
-      const proximo = this.equipe.find(p => p.vivo && p !== this.ativo);
-      if (proximo) {
-        this.ativo = proximo;
-        log.push(`${this.ativo.nome} entrou em batalha!`);
-      } else {
-        this.encerrada = true;
-        return { ...estado, danoInimigo: danoEfetivo, log, encerrada: true, resultado: 'derrota' };
-      }
-    }
-
-    return { ...estado, danoInimigo: danoEfetivo, log, encerrada: false };
-  }
+  _turnoInimigo(estado) { return estado; }
 }
