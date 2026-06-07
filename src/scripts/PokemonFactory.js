@@ -1,15 +1,3 @@
-const CONSTRUTORES = {
-  charmander: Charmander,
-  bulbasaur:  Bulbasaur,
-  squirtle:   Squirtle,
-  caterpie:   Caterpie,
-  weedle:     Weedle,
-  rattata:    Rattata,
-  tentacool:  Tentacool,
-  magikarp:   Magikarp,
-  horsea:     Horsea,
-};
-
 const BASE_STATS = {
   charmander: CHARMANDER_BASE,
   bulbasaur:  BULBASAUR_BASE,
@@ -23,34 +11,42 @@ const BASE_STATS = {
 };
 
 class PokemonFactory {
-  // multiplicadores: { vida, ataque, defesa, velocidade } — valores opcionais, padrão 1.0
-  static criar(especie, multiplicadores = {}) {
-    const chave = especie.toLowerCase().trim();
-    const Classe = CONSTRUTORES[chave];
+  static _creators = null;
 
-    if (!Classe) throw new Error(`Espécie "${especie}" não reconhecida.`);
-
-    const atributos = {};
-    for (const [attr, base] of Object.entries(BASE_STATS[chave])) {
-      const fator = Math.max(0.5, Math.min(2.0, multiplicadores[attr] ?? 1.0));
-      atributos[attr] = Math.round(base * fator);
+  static _getCreators() {
+    if (!PokemonFactory._creators) {
+      PokemonFactory._creators = {
+        charmander: new CharmanderCreator(),
+        bulbasaur:  new BulbasaurCreator(),
+        squirtle:   new SquirtleCreator(),
+        caterpie:   new CaterpieCreator(),
+        weedle:     new WeedleCreator(),
+        rattata:    new RattataCreator(),
+        tentacool:  new TentacoolCreator(),
+        magikarp:   new MagikarpCreator(),
+        horsea:     new HorseaCreator(),
+      };
     }
-
-    return new Classe(atributos);
+    return PokemonFactory._creators;
   }
 
-  // Gera multiplicadores aleatórios entre min e max para todos os atributos
+  static criar(especie, multiplicadores = {}) {
+    const chave   = especie.toLowerCase().trim();
+    const creator = PokemonFactory._getCreators()[chave];
+    if (!creator) throw new Error(`Espécie "${especie}" não reconhecida.`);
+    return creator.criar(multiplicadores);
+  }
+
   static multiplicadorAleatorio(min = 0.85, max = 1.15) {
     return Object.fromEntries(
-      ["vida", "ataque", "defesa", "velocidade"].map(attr => [
+      ['vida', 'ataque', 'defesa', 'velocidade'].map(attr => [
         attr,
         parseFloat((Math.random() * (max - min) + min).toFixed(2)),
       ])
     );
   }
 
-  // Lista todas as espécies disponíveis
   static especiesDisponiveis() {
-    return Object.keys(CONSTRUTORES);
+    return Object.keys(PokemonFactory._getCreators());
   }
 }
