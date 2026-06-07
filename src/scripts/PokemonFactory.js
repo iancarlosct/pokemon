@@ -1,3 +1,5 @@
+// Ponto de entrada para criação de Pokémon. Delega ao PokemonCreator correto.
+// BASE_STATS é usado pelo TrainerStorage na desserialização da equipe salva.
 const BASE_STATS = {
   charmander: CHARMANDER_BASE,
   bulbasaur:  BULBASAUR_BASE,
@@ -44,9 +46,5 @@ class PokemonFactory {
         parseFloat((Math.random() * (max - min) + min).toFixed(2)),
       ])
     );
-  }
-
-  static especiesDisponiveis() {
-    return Object.keys(PokemonFactory._getCreators());
   }
 }

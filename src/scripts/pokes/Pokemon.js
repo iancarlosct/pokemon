@@ -1,19 +1,20 @@
+// Classe base abstrata para todos os Pokémon do jogo.
 class Pokemon {
   constructor(nome, tipo, atributos) {
     if (new.target === Pokemon) {
-      throw new Error("Pokemon é uma classe abstrata.");
+      throw new Error('Pokemon é uma classe abstrata.');
     }
 
-    this.nome       = nome;
-    this.tipo       = tipo;
-    this.vidaMax    = atributos.vida;
-    this.vida       = atributos.vida;
-    this.ataque     = atributos.ataque;
-    this.defesa     = atributos.defesa;
-    this.velocidade = atributos.velocidade;
-    this.nivel      = 1;
+    this.nome        = nome;
+    this.tipo        = tipo;
+    this.vidaMax     = atributos.vida;
+    this.vida        = atributos.vida;
+    this.ataque      = atributos.ataque;
+    this.defesa      = atributos.defesa;
+    this.velocidade  = atributos.velocidade;
+    this.nivel       = 1;
     this.experiencia = 0;
-    this.vivo       = true;
+    this.vivo        = true;
   }
 
   receberDano(dano) {
@@ -38,22 +39,12 @@ class Pokemon {
 
   _subirNivel() {
     this.nivel++;
-    this.vidaMax    = Math.floor(this.vidaMax   * 1.1);
-    this.ataque     = Math.floor(this.ataque    * 1.1);
-    this.defesa     = Math.floor(this.defesa    * 1.1);
+    this.vidaMax    = Math.floor(this.vidaMax    * 1.1);
+    this.ataque     = Math.floor(this.ataque     * 1.1);
+    this.defesa     = Math.floor(this.defesa     * 1.1);
     this.velocidade = Math.floor(this.velocidade * 1.05);
     this.curar(this.vidaMax);
   }
 
-  atacar()           { throw new Error(`${this.nome} deve implementar atacar().`); }
-  habilidadeEspecial() { throw new Error(`${this.nome} deve implementar habilidadeEspecial().`); }
-
-  status() {
-    return {
-      nome: this.nome, tipo: this.tipo, nivel: this.nivel,
-      vida: `${this.vida}/${this.vidaMax}`,
-      ataque: this.ataque, defesa: this.defesa,
-      velocidade: this.velocidade, vivo: this.vivo,
-    };
-  }
+  atacar() { throw new Error(`${this.nome} deve implementar atacar().`); }
 }

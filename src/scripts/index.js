@@ -1,3 +1,4 @@
+// Tela inicial: coleta nome e Pokémon inicial do jogador e salva no localStorage.
 class TrainerSession {
   constructor() {
     this.trainerName   = '';
@@ -5,10 +6,7 @@ class TrainerSession {
   }
 
   save() {
-    const pokemon = PokemonFactory.criar(
-      this.chosenPokemon,
-      PokemonFactory.multiplicadorAleatorio()
-    );
+    const pokemon = PokemonFactory.criar(this.chosenPokemon, PokemonFactory.multiplicadorAleatorio());
     localStorage.setItem('trainer', JSON.stringify({
       nome:    this.trainerName,
       pokemon: this.chosenPokemon,
@@ -24,19 +22,16 @@ class TrainerSession {
 
 const session = new TrainerSession();
 
-/* ── Elementos ───────────────────────────────────────────────── */
 const screenName    = document.getElementById('screen-name');
 const screenPokemon = document.getElementById('screen-pokemon');
 const screenConfirm = document.getElementById('screen-confirm');
+const trainerInput  = document.getElementById('trainer-name');
+const btnName       = document.getElementById('btn-name');
+const dialogPkmnText= document.getElementById('dialog-pokemon-text');
+const confirmText   = document.getElementById('confirm-text');
+const btnStart      = document.getElementById('btn-start');
+const pokemonCards  = document.querySelectorAll('.pokemon-card');
 
-const trainerInput   = document.getElementById('trainer-name');
-const btnName        = document.getElementById('btn-name');
-const dialogPkmnText = document.getElementById('dialog-pokemon-text');
-const confirmText    = document.getElementById('confirm-text');
-const btnStart       = document.getElementById('btn-start');
-const pokemonCards   = document.querySelectorAll('.pokemon-card');
-
-/* ── Estrelas ────────────────────────────────────────────────── */
 (function generateStars() {
   const container = document.getElementById('stars');
   if (!container) return;
@@ -55,7 +50,6 @@ const pokemonCards   = document.querySelectorAll('.pokemon-card');
   }
 })();
 
-/* ── Utilitários ─────────────────────────────────────────────── */
 function typeWrite(el, text, speed = 38) {
   el.textContent = '';
   let i = 0;
@@ -82,21 +76,18 @@ function shakeInput() {
   setTimeout(() => { trainerInput.style.borderColor = ''; }, 800);
 }
 
-/* ── STEP 1: Nome ────────────────────────────────────────────── */
 btnName.addEventListener('click', confirmName);
 trainerInput.addEventListener('keydown', e => { if (e.key === 'Enter') confirmName(); });
 
 function confirmName() {
   const raw = trainerInput.value.trim();
   if (!raw) { shakeInput(); return; }
-
   session.trainerName = raw;
   transitionTo(screenName, screenPokemon, () => {
     typeWrite(dialogPkmnText, `Olá, ${session.trainerName}! Escolha seu parceiro de jornada.`, 36);
   });
 }
 
-/* ── STEP 2: Pokémon ─────────────────────────────────────────── */
 pokemonCards.forEach(card => {
   card.addEventListener('click', () => selectPokemon(card));
   card.addEventListener('keydown', e => {
@@ -108,19 +99,14 @@ function selectPokemon(card) {
   pokemonCards.forEach(c => c.classList.remove('selected'));
   card.classList.add('selected');
   session.chosenPokemon = card.dataset.name;
-
-  setTimeout(() => {
-    transitionTo(screenPokemon, screenConfirm, buildConfirmScreen);
-  }, 500);
+  setTimeout(() => transitionTo(screenPokemon, screenConfirm, buildConfirmScreen), 500);
 }
 
-/* ── STEP 3: Confirmação ─────────────────────────────────────── */
 const TYPE_COLORS = { charmander: '#ff6b35', bulbasaur: '#4ade80', squirtle: '#38bdf8' };
 
 function buildConfirmScreen() {
-  const color = TYPE_COLORS[session.chosenPokemon] || '#fff';
+  const color       = TYPE_COLORS[session.chosenPokemon] || '#fff';
   const displayName = session.chosenPokemon.charAt(0).toUpperCase() + session.chosenPokemon.slice(1);
-
   confirmText.innerHTML = `
     <span style="color:${color}">${displayName}</span> foi escolhido!<br><br>
     Boa sorte na sua jornada,<br>
@@ -130,14 +116,9 @@ function buildConfirmScreen() {
 
 btnStart.addEventListener('click', () => {
   session.save();
-
   const overlay = document.createElement('div');
-  overlay.style.cssText = `
-    position:fixed; inset:0; background:#000;
-    opacity:0; transition:opacity 0.6s ease; z-index:999;
-  `;
+  overlay.style.cssText = `position:fixed; inset:0; background:#000; opacity:0; transition:opacity 0.6s ease; z-index:999;`;
   document.body.appendChild(overlay);
-
   requestAnimationFrame(() => {
     overlay.style.opacity = '1';
     setTimeout(() => { window.location.href = 'pages/overworld13.html'; }, 650);

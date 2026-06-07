@@ -8,56 +8,42 @@
 </head>
 <body>
 
-  <!-- STEP 1 — Nome -->
   <div id="screen-name" class="screen active">
     <div class="scanlines"></div>
     <div class="stars" id="stars"></div>
-
     <div class="logo-wrap">
       <div class="logo-text">
         <span class="poke">Poké</span><span class="mon">mon</span>
       </div>
       <div class="logo-sub">Nova Jornada</div>
     </div>
-
     <div class="dialog-box" id="dialog-name">
       <p class="dialog-line" id="dialog-text">Olá! Qual é o seu nome, Treinador?</p>
     </div>
-
     <div class="name-form">
-      <input
-        type="text"
-        id="trainer-name"
-        class="name-input"
-        maxlength="12"
-        placeholder="Digite seu nome..."
-        autocomplete="off"
-        spellcheck="false"
-      />
+      <input type="text" id="trainer-name" class="name-input" maxlength="12"
+             placeholder="Digite seu nome..." autocomplete="off" spellcheck="false" />
       <button class="btn-confirm" id="btn-name">Confirmar ▶</button>
     </div>
-
     <div class="corner-deco top-left"></div>
     <div class="corner-deco top-right"></div>
     <div class="corner-deco bottom-left"></div>
     <div class="corner-deco bottom-right"></div>
   </div>
 
-  <!-- STEP 2 — Escolha Pokémon -->
   <div id="screen-pokemon" class="screen">
     <div class="scanlines"></div>
-
     <div class="dialog-box" id="dialog-pokemon">
       <p class="dialog-line" id="dialog-pokemon-text"></p>
     </div>
-
     <div class="pokemon-grid">
 
       <div class="pokemon-card" data-name="charmander" data-type="fire" tabindex="0">
         <div class="card-glow fire-glow"></div>
         <div class="type-badge fire">🔥 Fogo</div>
         <div class="pokemon-img-wrap">
-          <img src="assets/images/pokes/charmander.png" alt="Charmander" class="pokemon-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+          <img src="assets/images/pokes/charmander.png" alt="Charmander" class="pokemon-img"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
           <div class="pokemon-placeholder fire-placeholder" style="display:none">
             <span class="placeholder-icon">🔥</span>
           </div>
@@ -69,7 +55,8 @@
         <div class="card-glow grass-glow"></div>
         <div class="type-badge grass">🌿 Planta</div>
         <div class="pokemon-img-wrap">
-          <img src="assets/images/pokes/bulbasaur.png" alt="Bulbasaur" class="pokemon-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+          <img src="assets/images/pokes/bulbasaur.png" alt="Bulbasaur" class="pokemon-img"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
           <div class="pokemon-placeholder grass-placeholder" style="display:none">
             <span class="placeholder-icon">🌿</span>
           </div>
@@ -81,7 +68,8 @@
         <div class="card-glow water-glow"></div>
         <div class="type-badge water">💧 Água</div>
         <div class="pokemon-img-wrap">
-          <img src="assets/images/pokes/squirtle.png" alt="Squirtle" class="pokemon-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+          <img src="assets/images/pokes/squirtle.png" alt="Squirtle" class="pokemon-img"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
           <div class="pokemon-placeholder water-placeholder" style="display:none">
             <span class="placeholder-icon">💧</span>
           </div>
@@ -90,14 +78,12 @@
       </div>
 
     </div>
-
     <div class="corner-deco top-left"></div>
     <div class="corner-deco top-right"></div>
     <div class="corner-deco bottom-left"></div>
     <div class="corner-deco bottom-right"></div>
   </div>
 
-  <!-- STEP 3 — Confirmação -->
   <div id="screen-confirm" class="screen">
     <div class="scanlines"></div>
     <div class="confirm-content">
@@ -123,9 +109,7 @@
   </audio>
 
   <script src="scripts/songs.js"></script>
-
   <script src="scripts/pokes/Pokemon.js"></script>
-
   <script src="scripts/pokes/Charmander.js"></script>
   <script src="scripts/pokes/Bulbasaur.js"></script>
   <script src="scripts/pokes/Squirtle.js"></script>
@@ -135,10 +119,8 @@
   <script src="scripts/pokes/Tentacool.js"></script>
   <script src="scripts/pokes/Magikarp.js"></script>
   <script src="scripts/pokes/Horsea.js"></script>
-
   <script src="scripts/PokemonCreator.js"></script>
   <script src="scripts/PokemonFactory.js"></script>
-
   <script src="scripts/index.js"></script>
 </body>
 </html>

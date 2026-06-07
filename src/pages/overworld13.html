@@ -13,53 +13,33 @@
     <div class="grid-overlay" id="gridOverlay"></div>
   </div>
 
-  <button onclick="new HeldItemUI()" 
-        style="position:fixed; top:12px; right:12px; z-index:100; 
-               font-family:'Press Start 2P'; font-size:0.4rem;
-               background:#0d0d2b; color:#f5c542; 
-               border:2px solid #2a2a6e; padding:8px 12px; 
-               border-radius:6px; cursor:pointer;">
-  ⬡ Mochila
-  </button>
+  <button class="btn-mochila" onclick="new HeldItemUI()">⬡ Mochila</button>
 
   <audio id="bg-music" loop>
     <source src="../assets/songs/defaultOverworldsong.mp3" type="audio/mpeg" />
   </audio>
 
   <script src="../scripts/songs.js"></script>
-
-  <!-- Base -->
   <script src="../scripts/pokes/Pokemon.js"></script>
-
-  <!-- Pokémon do jogador -->
   <script src="../scripts/pokes/Charmander.js"></script>
   <script src="../scripts/pokes/Bulbasaur.js"></script>
   <script src="../scripts/pokes/Squirtle.js"></script>
-
-  <!-- Pokémon selvagens -->
   <script src="../scripts/pokes/Caterpie.js"></script>
   <script src="../scripts/pokes/Rattata.js"></script>
   <script src="../scripts/pokes/Weedle.js"></script>
   <script src="../scripts/pokes/Horsea.js"></script>
   <script src="../scripts/pokes/Magikarp.js"></script>
   <script src="../scripts/pokes/Tentacool.js"></script>
-
-  <!-- Held Items -->
   <script src="../scripts/heldItems/HeldItemDecorator.js"></script>
   <script src="../scripts/heldItems/HeldItems.js"></script>
   <script src="../scripts/heldItems/HeldItemFactory.js"></script>
-  <script src="../scripts/HeldItemUI.js"></script>
-
-  <!-- Sistema -->
+  <script src="../scripts/heldItems/HeldItemUI.js"></script>
   <script src="../scripts/PokemonCreator.js"></script>
   <script src="../scripts/PokemonFactory.js"></script>
-  <script src="../scripts/BattleState.js"></script>
-  <script src="../scripts/BattleStates.js"></script>
-  <script src="../scripts/Battle.js"></script>
-  <script src="../scripts/BattleUI.js"></script>
+  <script src="../scripts/battle/BattleStates.js"></script>
+  <script src="../scripts/battle/Battle.js"></script>
+  <script src="../scripts/battle/BattleUI.js"></script>
   <script src="../scripts/TrainerStorage.js"></script>
-
-  <!-- Mapa -->
-  <script src="../scripts/maps/overworld13.js"></script>
+  <script src="../scripts/maps/Overworld13.js"></script>
 </body>
 </html>

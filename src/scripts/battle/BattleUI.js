@@ -1,14 +1,4 @@
-/**
- * @file BattleUI.js
- * @description Interface da batalha refatorada para o padrão State.
- *
- * A principal mudança em relação à versão original:
- *  - O flag _bloqueado foi removido completamente.
- *  - Toda verificação de "pode agir agora?" é delegada a battle.jogadorPodeAgir().
- *  - Os métodos de ação (atacar, capturar, correr) chamam diretamente battle.atacar(),
- *    battle.capturar(), battle.correr() — sem lógica de estado aqui.
- *  - battle.trocar() substitui battle.tentarCapturar() e battle.tentarCorrer() antigos.
- */
+// Interface visual da batalha. Delega toda lógica de estado ao Battle.
 class BattleUI {
   constructor(battle, onEncerrar) {
     this.battle     = battle;
@@ -17,12 +7,8 @@ class BattleUI {
     this._build();
     if (typeof window.musicIniciarBatalha === 'function') window.musicIniciarBatalha();
     this._atualizar();
-    requestAnimationFrame(() => {
-      this.overlay.classList.add('visible');
-    });
+    requestAnimationFrame(() => this.overlay.classList.add('visible'));
   }
-
-  // ─── Build ────────────────────────────────────────────────────
 
   _build() {
     this.overlay = document.createElement('div');
@@ -33,8 +19,6 @@ class BattleUI {
 
     this.overlay.innerHTML = `
       <div id="bt-arena">
-
-        <!-- Inimigo -->
         <div id="bt-enemy-side">
           <div id="bt-enemy-info">
             <div class="bt-name-row">
@@ -48,21 +32,14 @@ class BattleUI {
           </div>
           <div id="bt-enemy-sprite-wrap">
             <div class="bt-ground enemy-ground"></div>
-            <img id="bt-enemy-sprite"
-              src="../assets/images/pokes/${s.nome.toLowerCase()}.png"
-              alt="${s.nome}"
-              class="bt-sprite enemy-sprite" />
+            <img id="bt-enemy-sprite" src="../assets/images/pokes/${s.nome.toLowerCase()}.png" alt="${s.nome}" class="bt-sprite enemy-sprite" />
           </div>
         </div>
 
-        <!-- Jogador -->
         <div id="bt-player-side">
           <div id="bt-player-sprite-wrap">
             <div class="bt-ground player-ground"></div>
-            <img id="bt-player-sprite"
-              src="../assets/images/pokes/${a.nome.toLowerCase()}.png"
-              alt="${a.nome}"
-              class="bt-sprite player-sprite" />
+            <img id="bt-player-sprite" src="../assets/images/pokes/${a.nome.toLowerCase()}.png" alt="${a.nome}" class="bt-sprite player-sprite" />
           </div>
           <div id="bt-player-info">
             <div class="bt-name-row">
@@ -76,10 +53,8 @@ class BattleUI {
             <div class="bt-hp-numbers" id="bt-php-nums"></div>
           </div>
         </div>
-
       </div>
 
-      <!-- Painel inferior -->
       <div id="bt-panel">
         <div id="bt-log-box">
           <p id="bt-log">Um ${s.nome} selvagem apareceu!</p>
@@ -98,8 +73,6 @@ class BattleUI {
     this._bindEventos();
   }
 
-  // ─── Eventos ──────────────────────────────────────────────────
-
   _bindEventos() {
     this.overlay.querySelector('#bt-atk').onclick  = () => this._acao(() => this.battle.atacar());
     this.overlay.querySelector('#bt-cap').onclick  = () => this._capturar();
@@ -107,65 +80,50 @@ class BattleUI {
     this.overlay.querySelector('#bt-swap').onclick = () => this._abrirTrocar();
   }
 
-  // ─── Ações ────────────────────────────────────────────────────
-  // Não há mais verificação de _bloqueado aqui.
-  // battle.jogadorPodeAgir() encapsula essa decisão no estado atual.
-
   _acao(fn) {
     if (!this.battle.jogadorPodeAgir()) return;
-
     this._animAtaque('player', () => {
+      const ativoAntes = this.battle.ativo;
       const res = fn();
       if (!res) return;
-
       this._animAtaque('enemy', () => {
+        if (this.battle.ativo !== ativoAntes) this._atualizarSprite();
         this._atualizar();
         this._log(res.log.join(' '));
         if (res.multiplicador > 1) this._flashEfetividade('super');
         if (res.multiplicador < 1) this._flashEfetividade('fraco');
-        if (this.battle.encerrada) {
-          setTimeout(() => this._encerrar(this.battle.resultado), 2000);
-        }
+        if (this.battle.encerrada) setTimeout(() => this._encerrar(this.battle.resultado), 2000);
       });
     });
   }
 
   _capturar() {
     if (!this.battle.jogadorPodeAgir()) return;
-
     this._animPokeball(() => {
+      const ativoAntes = this.battle.ativo;
       const res = this.battle.capturar();
       if (!res) return;
-
+      if (this.battle.ativo !== ativoAntes) this._atualizarSprite();
       this._atualizar();
       this._log(res.log.join(' '));
-
-      if (this.battle.encerrada) {
-        setTimeout(() => this._encerrar(this.battle.resultado), 1800);
-      }
+      if (this.battle.encerrada) setTimeout(() => this._encerrar(this.battle.resultado), 1800);
     });
   }
 
   _correr() {
     if (!this.battle.jogadorPodeAgir()) return;
-
     const res = this.battle.correr();
     if (!res) return;
-
     this._atualizar();
     this._log(res.log.join(' '));
-
-    if (this.battle.encerrada) {
-      setTimeout(() => this._encerrar(this.battle.resultado), 1200);
-    }
+    if (this.battle.encerrada) setTimeout(() => this._encerrar(this.battle.resultado), 1200);
   }
 
   _abrirTrocar() {
     if (!this.battle.jogadorPodeAgir()) return;
-
     const actions  = this.overlay.querySelector('#bt-actions');
     const swapList = this.overlay.querySelector('#bt-swap-list');
-    swapList.innerHTML = '';
+    swapList.innerHTML    = '';
     actions.style.display  = 'none';
     swapList.style.display = 'flex';
 
@@ -177,7 +135,6 @@ class BattleUI {
                        <span>${p.nome}</span>
                        <span class="swap-hp">${p.vida}/${p.vidaMax}</span>`;
       btn.onclick = () => {
-        // battle.trocar() delega ao estado — retorna null se inválido
         const res = this.battle.trocar(i);
         if (res) {
           this._atualizarSprite();
@@ -193,14 +150,9 @@ class BattleUI {
     const voltar = document.createElement('button');
     voltar.className   = 'bt-btn';
     voltar.textContent = '← Voltar';
-    voltar.onclick = () => {
-      swapList.style.display = 'none';
-      actions.style.display  = 'grid';
-    };
+    voltar.onclick = () => { swapList.style.display = 'none'; actions.style.display = 'grid'; };
     swapList.appendChild(voltar);
   }
-
-  // ─── Animações ────────────────────────────────────────────────
 
   _animAtaque(lado, cb) {
     const sprite = this.overlay.querySelector(lado === 'player' ? '#bt-player-sprite' : '#bt-enemy-sprite');
@@ -225,23 +177,19 @@ class BattleUI {
 
   _flashEfetividade(tipo) {
     const el = document.createElement('div');
-    el.className  = `bt-efectividade ${tipo}`;
+    el.className   = `bt-efectividade ${tipo}`;
     el.textContent = tipo === 'super' ? 'Super efetivo!' : 'Não é muito efetivo...';
     this.overlay.querySelector('#bt-arena').appendChild(el);
     setTimeout(() => el.remove(), 1200);
   }
 
-  // ─── Atualização de estado ────────────────────────────────────
-
   _atualizar() {
-    const s = this.battle.selvagem;
-    const a = this.battle.ativo;
-
+    const s    = this.battle.selvagem;
+    const a    = this.battle.ativo;
     const pctE = Math.max(0, (s.vida / s.vidaMax) * 100);
     const pctP = Math.max(0, (a.vida / a.vidaMax) * 100);
-
-    const ehp = this.overlay.querySelector('#bt-ehp');
-    const php = this.overlay.querySelector('#bt-php');
+    const ehp  = this.overlay.querySelector('#bt-ehp');
+    const php  = this.overlay.querySelector('#bt-php');
 
     ehp.style.width      = `${pctE}%`;
     ehp.style.background = this._corHP(pctE);
@@ -267,7 +215,7 @@ class BattleUI {
   }
 
   _log(texto) {
-    const el       = this.overlay.querySelector('#bt-log');
+    const el = this.overlay.querySelector('#bt-log');
     el.style.opacity = '0';
     setTimeout(() => { el.textContent = texto; el.style.opacity = '1'; }, 120);
   }
@@ -277,8 +225,6 @@ class BattleUI {
     this.overlay.classList.remove('visible');
     setTimeout(() => { this.overlay.remove(); this.onEncerrar(resultado); }, 400);
   }
-
-  // ─── Estilos ──────────────────────────────────────────────────
 
   _injectStyles() {
     if (document.getElementById('bt-styles')) return;
@@ -330,56 +276,28 @@ class BattleUI {
       #bt-enemy-info, #bt-player-info {
         background: rgba(10,10,30,0.85);
         border: 2px solid #2a2a6e;
-        border-radius: 8px;
-        padding: 10px 14px;
-        min-width: 200px;
-        backdrop-filter: blur(4px);
+        border-radius: 8px; padding: 10px 14px;
+        min-width: 200px; backdrop-filter: blur(4px);
         box-shadow: 0 4px 24px rgba(0,0,0,0.5);
       }
       #bt-player-info { min-width: 220px; }
 
-      .bt-name-row {
-        display: flex; justify-content: space-between; align-items: baseline;
-        margin-bottom: 8px;
-      }
+      .bt-name-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
       .bt-name  { font-size: 0.55rem; color: #e8e8ff; letter-spacing: 1px; }
-      .bt-level { font-size: 0.4rem;  color: #6a6aaa; }
+      .bt-level { font-size: 0.4rem; color: #6a6aaa; }
 
       .bt-hp-track { display: flex; align-items: center; gap: 8px; }
       .bt-hp-label { font-size: 0.38rem; color: #f5c542; }
-      .bt-hp-rail {
-        flex: 1; height: 8px;
-        background: #1a1a3e; border-radius: 99px;
-        border: 1px solid #2a2a5a; overflow: hidden;
-      }
-      .bt-hp-bar {
-        height: 100%; border-radius: 99px;
-        transition: width 0.5s ease, background 0.5s ease;
-        box-shadow: 0 0 6px currentColor;
-      }
-      .bt-hp-numbers {
-        font-size: 0.38rem; color: #6a6aaa;
-        text-align: right; margin-top: 5px;
-      }
+      .bt-hp-rail  { flex: 1; height: 8px; background: #1a1a3e; border-radius: 99px; border: 1px solid #2a2a5a; overflow: hidden; }
+      .bt-hp-bar   { height: 100%; border-radius: 99px; transition: width 0.5s ease, background 0.5s ease; box-shadow: 0 0 6px currentColor; }
+      .bt-hp-numbers { font-size: 0.38rem; color: #6a6aaa; text-align: right; margin-top: 5px; }
 
-      #bt-enemy-sprite-wrap, #bt-player-sprite-wrap {
-        position: relative; display: flex;
-        flex-direction: column; align-items: center;
-      }
-      .bt-ground {
-        width: 120px; height: 18px;
-        border-radius: 50%;
-        position: absolute; bottom: -4px;
-      }
+      #bt-enemy-sprite-wrap, #bt-player-sprite-wrap { position: relative; display: flex; flex-direction: column; align-items: center; }
+      .bt-ground { width: 120px; height: 18px; border-radius: 50%; position: absolute; bottom: -4px; }
       .enemy-ground  { background: radial-gradient(ellipse, rgba(100,200,100,0.18) 0%, transparent 70%); }
       .player-ground { background: radial-gradient(ellipse, rgba(100,200,100,0.18) 0%, transparent 70%); }
 
-      .bt-sprite {
-        image-rendering: pixelated;
-        position: relative; z-index: 1;
-        filter: drop-shadow(0 8px 16px rgba(0,0,0,0.7));
-        transition: transform 0.1s;
-      }
+      .bt-sprite { image-rendering: pixelated; position: relative; z-index: 1; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.7)); transition: transform 0.1s; }
       .enemy-sprite  { width: 140px; height: 140px; }
       .player-sprite { width: 160px; height: 160px; transform: scaleX(-1); }
 
@@ -426,68 +344,38 @@ class BattleUI {
         100% { opacity:0; transform:translateX(-50%) translateY(-12px); }
       }
 
-      #bt-panel {
-        height: 180px; background: #0d0d2b;
-        border-top: 3px solid #2a2a6e;
-        display: flex; gap: 0;
-      }
+      #bt-panel { height: 180px; background: #0d0d2b; border-top: 3px solid #2a2a6e; display: flex; }
 
-      #bt-log-box {
-        flex: 1.2; padding: 20px 24px;
-        display: flex; align-items: center;
-        border-right: 2px solid #1a1a3e;
-      }
-      #bt-log {
-        font-size: 0.48rem; color: #e8e8ff;
-        line-height: 2; transition: opacity 0.12s;
-      }
+      #bt-log-box { flex: 1.2; padding: 20px 24px; display: flex; align-items: center; border-right: 2px solid #1a1a3e; }
+      #bt-log     { font-size: 0.48rem; color: #e8e8ff; line-height: 2; transition: opacity 0.12s; }
 
-      #bt-actions {
-        flex: 1; display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px; padding: 16px;
-        align-content: center;
-      }
-
-      #bt-swap-list {
-        flex: 1; flex-direction: column;
-        gap: 6px; padding: 12px; overflow-y: auto;
-      }
+      #bt-actions   { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 16px; align-content: center; }
+      #bt-swap-list { flex: 1; flex-direction: column; gap: 6px; padding: 12px; overflow-y: auto; }
 
       .bt-btn {
         font-family: 'Press Start 2P', monospace;
-        font-size: 0.4rem;
-        padding: 10px 8px;
+        font-size: 0.4rem; padding: 10px 8px;
         background: #11112e; color: #e8e8ff;
-        border: 2px solid #2a2a6e;
-        border-radius: 6px; cursor: pointer;
-        transition: all 0.12s;
-        letter-spacing: 0.5px;
+        border: 2px solid #2a2a6e; border-radius: 6px;
+        cursor: pointer; transition: all 0.12s; letter-spacing: 0.5px;
       }
-      .bt-btn:hover:not(:disabled) {
-        background: #1a1a4e; border-color: #f5c542; color: #f5c542;
-        transform: translateY(-1px);
-        box-shadow: 0 3px 0 #8a6e00;
-      }
-      .bt-btn:active:not(:disabled) { transform: translateY(1px); box-shadow: none; }
+      .bt-btn:hover:not(:disabled) { background: #1a1a4e; border-color: #f5c542; color: #f5c542; transform: translateY(-1px); box-shadow: 0 3px 0 #8a6e00; }
+      .bt-btn:active:not(:disabled){ transform: translateY(1px); box-shadow: none; }
       .bt-btn.primary { border-color: #4ade80; color: #4ade80; }
       .bt-btn.primary:hover:not(:disabled) { background: #0a2a0a; border-color: #4ade80; color: #4ade80; box-shadow: 0 3px 0 #166534; }
       .bt-btn.danger  { border-color: #ef4444; color: #ef4444; }
       .bt-btn.danger:hover:not(:disabled)  { background: #2a0a0a; box-shadow: 0 3px 0 #7f1d1d; }
       .bt-btn:disabled, .bt-btn.disabled   { opacity: 0.3; cursor: not-allowed; }
 
-      .swap-entry {
-        display: flex; align-items: center; gap: 10px;
-        text-align: left; padding: 8px 12px;
-      }
+      .swap-entry { display: flex; align-items: center; gap: 10px; text-align: left; padding: 8px 12px; }
       .swap-thumb { width: 32px; height: 32px; image-rendering: pixelated; }
-      .swap-hp { margin-left: auto; font-size: 0.35rem; color: #6a6aaa; }
+      .swap-hp    { margin-left: auto; font-size: 0.35rem; color: #6a6aaa; }
 
       @media (max-width: 600px) {
         .enemy-sprite  { width: 100px; height: 100px; }
         .player-sprite { width: 110px; height: 110px; }
         #bt-enemy-info, #bt-player-info { min-width: 150px; }
-        #bt-panel { height: 200px; flex-direction: column; }
+        #bt-panel   { height: 200px; flex-direction: column; }
         #bt-log-box { border-right: none; border-bottom: 2px solid #1a1a3e; flex: none; padding: 12px 16px; }
         #bt-actions { grid-template-columns: 1fr 1fr; }
       }
